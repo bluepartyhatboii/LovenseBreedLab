@@ -18,9 +18,7 @@ namespace BreederLaboratoryLovesense
     {
 
         private string _id = "";
-        private float timer;
         HeroineStats player;
-        bool mounted;
         bool sexStarted;
 
         Dictionary<string, Dictionary<int, int>> sexTime;
@@ -53,12 +51,10 @@ namespace BreederLaboratoryLovesense
 
         void Awake()
         {
-            mounted = false;
             sexTimers = new List<Timer>();
 
             PopulateSexTime();
 
-            Logger.LogInfo("LoveSenseSexMachineMod Initialized");
             GetSupportedCommand();
 
             ThrustPatcher.onThrustHandler += OnThrustEvent;
@@ -81,7 +77,7 @@ namespace BreederLaboratoryLovesense
         private void OnThrustEvent()
         {
             long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Logger.LogInfo("point: " + ms);
+            Logger.LogInfo("Thurst event at: " + ms);
             if(player == null)
             {
                 try
@@ -90,7 +86,8 @@ namespace BreederLaboratoryLovesense
                 }
                 catch (Exception e)
                 {
-
+                    Logger.LogInfo(e.Message);
+                    Logger.LogInfo(e.StackTrace);
                 }
             }
             if (!sexStarted)
@@ -103,19 +100,22 @@ namespace BreederLaboratoryLovesense
         private void OnFuckStarted()
         {
             long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Logger.LogInfo("Begin: " + ms);
+            Logger.LogInfo("Sex scene begin at: " + ms);
 
             if(player != null)
             {
                 if (player.mySexPartner != null)
                 {
-                    Logger.LogInfo("playergot");
+                    Logger.LogInfo("Found partner");
                     Dictionary<int, int> timestamps = FindTimestamps();
+                    Logger.LogInfo("Speed change timestamps: ");
 
                     foreach(KeyValuePair<int, int> item in timestamps)
                     {
                         int key = item.Key;
                         int value = item.Value;
+
+                        Logger.LogInfo("+" + key + "ms -- speed " + value);
 
                         Timer timer = new Timer(_ =>
                         {
@@ -132,7 +132,7 @@ namespace BreederLaboratoryLovesense
         {
             List<LovenseCommand> commands = new List<LovenseCommand>();
 
-            Logger.LogInfo("Start");
+            Logger.LogInfo("BLE changing speed to: " + speed);
 
             LovenseCommand addCommand = new LovenseCommand();
             addCommand.commandType = LovenseCommandType.VIBRATE;
@@ -150,7 +150,7 @@ namespace BreederLaboratoryLovesense
         private void OnFuckEnd()
         {
             long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Logger.LogInfo("End: " + ms);
+            Logger.LogInfo("Sex scene end at: " + ms);
 
             sexStarted = false;
 
@@ -182,7 +182,7 @@ namespace BreederLaboratoryLovesense
 
         private void LovenseAddToyEvent(LovenseToy toy)
         {
-            Logger.LogInfo("BLE item found");
+            Logger.LogInfo("BLE item found, connecting...");
             LovenseBLETools.GetInstance().StopBLEScan();
             LovenseBLETools.GetInstance().ConnectToy(toy.id);
         }
@@ -196,7 +196,7 @@ namespace BreederLaboratoryLovesense
             if(!connected)
             {
                 _id = "";
-                Logger.LogInfo("lost Lovesense bluetooth connection");
+                Logger.LogInfo("BLE lost connection");
             }
             else
             {
@@ -207,6 +207,7 @@ namespace BreederLaboratoryLovesense
 
         public void OnDestroy()
         {
+            Logger.LogInfo("Disconnecting BLE");
             LovenseBLETools.GetInstance().DisConnectToy(_id);
         }
 
@@ -483,7 +484,11 @@ namespace BreederLaboratoryLovesense
            {
                 if (status == InitSupportCommandStatus.SUCCESS)
                 {
-
+                    Logger.LogInfo("BLE init success");
+                }
+                else
+                {
+                   Logger.LogInfo("BLE init error");
                 }
             });
         }

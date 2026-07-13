@@ -296,6 +296,13 @@ namespace BreederLaboratoryLovesense
             sexTimestamp.Add(132000, 2);
             sexTime.Add("mindFleyer", sexTimestamp);
 
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 2);
+            sexTimestamp.Add(10000, 4);
+            sexTimestamp.Add(16700, 9);
+            sexTimestamp.Add(19600, 22);
+            sexTime.Add("mantis", sexTimestamp);
+
         }
 
         private Dictionary<int,int> FindTimestamps()

@@ -32,7 +32,11 @@ Testing requires having the hardware, sex toys, and I do not own more than 1 at 
 * Open project
 * Import references from your game installation: Breed Laboratory\_Data/Managed/Assembly-CSharp.dll, Breed Laboratory\_Data/Managed/UnityEngine.dll, Breed Laboratory\_Data/Managed/UnityEngine.CoreModule.dll, BepInEx/core/0Harmony.dll, BepInEx/core/Bepinex.dll
 * Build
-* Note: Lovense Bluetooth lib not included in project, you need to download it from the manufacturer \[LovenseBLE\_Lib.dll]\[lovense]
+* Note: Lovense Bluetooth lib not included in project, you need to download it from the manufacturer 
+
+```
+\[LovenseBLE\\\_Lib.dll](https://developer.lovense.com/LovenseBLE\_Lib.dll)
+```
 
 ## Installation
 
@@ -40,9 +44,14 @@ Testing requires having the hardware, sex toys, and I do not own more than 1 at 
 
 * Any working Bluetooth dongle or native Bluetooth
 * Functional installation of BepInEx v5.X https://github.com/bepinex/bepinex
-* Having a copy of Lovense Bluetooth library \[LovenseBLE\_Lib.dll]\[lovense]
 
-\[lovense]: https://developer.lovense.com/LovenseBLE\_Lib.dll
+Having a copy of Lovense Bluetooth library 
+
+```
+
+\[LovenseBLE\_Lib.dll](https://developer.lovense.com/LovenseBLE\_Lib.dll)
+
+```
 
 ### Steps
 

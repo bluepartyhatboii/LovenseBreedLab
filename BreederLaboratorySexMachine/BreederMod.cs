@@ -1,0 +1,491 @@
+﻿
+using BepInEx;
+using BreederLaboratoryLovesense.LovesenseSDK;
+using BreederLaboratoryLovesense.Patchers;
+using BreederLaboratorySexMachine.Patchers;
+using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
+using UnityEngine;
+using System.Threading;
+
+namespace BreederLaboratoryLovesense
+{
+    [BepInPlugin("LoveSenseSexMachineMod", "LoveSenseSexMachineMod", "1.0.0")]
+    public class BreederMod : BaseUnityPlugin
+    {
+
+        private string _id = "";
+        private float timer;
+        HeroineStats player;
+        bool mounted;
+        bool sexStarted;
+
+        Dictionary<string, Dictionary<int, int>> sexTime;
+        List<Timer> sexTimers;
+
+        //xmachine duty cycle data:
+        //1: 1165ms
+        //2: 987ms
+        //3: 820ms
+        //10: 395 ms
+        //15: 300ms
+        //20: 194ms
+
+        //monsters raw data
+        //hugger: 625, 31 417
+        ////facehugger: 1.2sec
+        //wolf feral: 583, 6 417, -20ms per thrust, until 236
+        //wasp: 791, 26 396
+        //fytrap: 583, 15 416, 21 291
+        //licker: 542, 14 387, 19.6 271
+        //snake: 1208, 20 863, 26 604, 31 200
+        //mantis: 792, 10 560, 16.7 377, 19.6 250
+        //wolf t1: 584, 14.4 267 20.5 188
+        //futa: 583, 15 396
+        //plantwalker: 584
+        //mindfleyer: 792, 31.6 1625, 132 792
+
+        //formula ms to xmachine speed setting
+        // duty cycle = (1160 / (speed^0.62)) + 80
+
+        void Awake()
+        {
+            mounted = false;
+            sexTimers = new List<Timer>();
+
+            PopulateSexTime();
+
+            Logger.LogInfo("LoveSenseSexMachineMod Initialized");
+            GetSupportedCommand();
+
+            ThrustPatcher.onThrustHandler += OnThrustEvent;
+            FuckPatcher.onFuckHandler += OnFuckStarted;
+            RestPatcher.onRestHandler += OnFuckEnd;
+
+            new BreederModPatcher();
+           
+            LovenseBLETools.GetInstance().InitCallback();
+            LovenseBLETools.GetInstance().CheckBLEStatus();
+
+            LovenseBLETools.GetInstance().lovenseNotifyEvent += LovenseNotifyMessage;
+            LovenseBLETools.GetInstance().addToyEvent += LovenseAddToyEvent;
+            LovenseBLETools.GetInstance().connectChangeEvent += LoveSenseConnectChangeEvent;
+
+            LovenseBLETools.GetInstance().StartBLEScan();
+            Logger.LogInfo("LoveSenseSexMachineMod Initialized");
+        }
+
+        private void OnThrustEvent()
+        {
+            long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            Logger.LogInfo("point: " + ms);
+            if(player == null)
+            {
+                try
+                {
+                    player = UnityEngine.Object.FindObjectOfType<HeroineStats>();
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+            if (!sexStarted)
+            {
+                sexStarted = true;
+                OnFuckStarted();
+            }
+        }
+        
+        private void OnFuckStarted()
+        {
+            long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            Logger.LogInfo("Begin: " + ms);
+
+            if(player != null)
+            {
+                if (player.mySexPartner != null)
+                {
+                    Logger.LogInfo("playergot");
+                    Dictionary<int, int> timestamps = FindTimestamps();
+
+                    foreach(KeyValuePair<int, int> item in timestamps)
+                    {
+                        int key = item.Key;
+                        int value = item.Value;
+
+                        Timer timer = new Timer(_ =>
+                        {
+                            SendStartCommand(value);
+                        }, null, key, Timeout.Infinite);
+
+                        sexTimers.Add(timer);
+                    }
+                }
+            }
+        }
+
+        private void SendStartCommand(int speed)
+        {
+            List<LovenseCommand> commands = new List<LovenseCommand>();
+
+            Logger.LogInfo("Start");
+
+            LovenseCommand addCommand = new LovenseCommand();
+            addCommand.commandType = LovenseCommandType.VIBRATE;
+            addCommand.value = speed;
+            commands.Add(addCommand);
+
+            addCommand = new LovenseCommand();
+            addCommand.commandType = LovenseCommandType.THRUSTRING;
+            addCommand.value = speed;
+            commands.Add(addCommand);
+
+            LovenseBLETools.GetInstance().SendCommands(_id, commands.ToArray());
+        }
+
+        private void OnFuckEnd()
+        {
+            long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            Logger.LogInfo("End: " + ms);
+
+            sexStarted = false;
+
+            foreach(Timer timer in sexTimers)
+            {
+                timer.Dispose();
+            }
+            sexTimers.Clear();
+
+            List<LovenseCommand> commands = new List<LovenseCommand>();
+
+            LovenseCommand addCommand = new LovenseCommand();
+            addCommand.commandType = LovenseCommandType.VIBRATE;
+            addCommand.value = 0;
+            commands.Add(addCommand);
+
+            addCommand = new LovenseCommand();
+            addCommand.commandType = LovenseCommandType.THRUSTRING;
+            addCommand.value = 0;
+            commands.Add(addCommand);
+
+            LovenseBLETools.GetInstance().SendCommands(_id, commands.ToArray());
+        }
+
+        private void OnLog(string log)
+        {
+            Logger.LogInfo(log);
+        }
+
+        private void LovenseAddToyEvent(LovenseToy toy)
+        {
+            Logger.LogInfo("BLE item found");
+            LovenseBLETools.GetInstance().StopBLEScan();
+            LovenseBLETools.GetInstance().ConnectToy(toy.id);
+        }
+        private void LovenseNotifyMessage(LovenseNotifyType type, string id)
+        {
+            //Logger.LogInfo("Notify tpye: " + type + " id: " + id);
+        }
+
+        private void LoveSenseConnectChangeEvent(string id, bool connected)
+        {
+            if(!connected)
+            {
+                _id = "";
+                Logger.LogInfo("lost Lovesense bluetooth connection");
+            }
+            else
+            {
+                _id = id;
+                Logger.LogInfo("BLE Connection success");
+            }
+        }
+
+        public void OnDestroy()
+        {
+            LovenseBLETools.GetInstance().DisConnectToy(_id);
+        }
+
+        private void PopulateSexTime()
+        {
+            sexTime = new Dictionary<string, Dictionary<int, int>>();
+
+            Dictionary<int, int> sexTimestamp;
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 3);
+            sexTimestamp.Add(31000, 7);
+            sexTime.Add("hugger", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 1);
+            sexTime.Add("facehugger", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 4);
+            sexTimestamp.Add(6000, 7);
+            sexTimestamp.Add(6200, 8);
+            sexTimestamp.Add(6400, 9);
+            sexTimestamp.Add(6600, 10);
+            sexTimestamp.Add(6800, 12);
+            sexTimestamp.Add(7000, 15);
+            sexTimestamp.Add(7200, 18);
+            sexTimestamp.Add(7400, 22);
+            sexTimestamp.Add(7600, 25);
+            sexTime.Add("wolfFeral", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 2);
+            sexTimestamp.Add(26000, 8);
+            sexTime.Add("wasp", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 3);
+            sexTimestamp.Add(15000, 7);
+            sexTimestamp.Add(21000, 14);
+            sexTime.Add("flyTrap", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 4);
+            sexTimestamp.Add(14000, 8);
+            sexTimestamp.Add(19600, 17);
+            sexTime.Add("licker", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 1);
+            sexTimestamp.Add(20000, 2);
+            sexTimestamp.Add(26000, 3);
+            sexTimestamp.Add(31000, 40);
+            sexTime.Add("snake", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 3);
+            sexTimestamp.Add(14400, 17);
+            sexTimestamp.Add(20500, 40);
+            sexTime.Add("wolfT1", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 3);
+            sexTimestamp.Add(15000, 7);
+            sexTime.Add("futa", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 3);
+            sexTime.Add("plantWalker", sexTimestamp);
+
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 2);
+            sexTimestamp.Add(31600, 1);
+            sexTimestamp.Add(132000, 2);
+            sexTime.Add("mindFleyer", sexTimestamp);
+
+        }
+
+        private Dictionary<int,int> FindTimestamps()
+        {
+            OctoControl octo = player.mySexPartner.GetComponent<OctoControl>();
+            if (octo != null)
+            {
+                Logger.LogInfo("octo");
+                return sexTime["facehugger"];
+            }
+
+            OctoGallery octog = player.mySexPartner.GetComponent<OctoGallery>();
+            if (octog != null)
+            {
+                Logger.LogInfo("octog");
+                return sexTime["facehugger"];
+            }
+
+            /*******************************************************************************************/
+            HuggerControl hugger = player.mySexPartner.GetComponent<HuggerControl>();
+            if (hugger != null)
+            {
+                Logger.LogInfo("hugger");
+                return sexTime["hugger"];
+            }
+
+            HuggerGallery huggerg = player.mySexPartner.GetComponent<HuggerGallery>();
+            if (huggerg != null)
+            {
+                Logger.LogInfo("huggerg");
+                return sexTime["hugger"];
+            }
+            /*******************************************************************************************/
+            HoundControl hound = player.mySexPartner.GetComponent<HoundControl>();
+            if (hound != null)
+            {
+                Logger.LogInfo("hound");
+                return sexTime["wolfFeral"];
+            }
+
+            HoundGallery houndg = player.mySexPartner.GetComponent<HoundGallery>();
+            if (houndg != null)
+            {
+                Logger.LogInfo("houndg");
+                return sexTime["wolfFeral"];
+            }
+            /*******************************************************************************************/
+            WaspControl wasp = player.mySexPartner.GetComponent<WaspControl>();
+            if (wasp != null)
+            {
+                Logger.LogInfo("wasp");
+                return sexTime["wasp"];
+            }
+
+            WaspGallery waspg = player.mySexPartner.GetComponent<WaspGallery>();
+            if (waspg != null)
+            {
+                Logger.LogInfo("waspg");
+                return sexTime["wasp"];
+            }
+            /*******************************************************************************************/
+            ImpregInsectControl flytrap = player.mySexPartner.GetComponent<ImpregInsectControl>();
+            if (flytrap != null)
+            {
+                Logger.LogInfo("flytrap");
+                return sexTime["flytrap"];
+            }
+
+            ImpregnatorGallary flytrapg = player.mySexPartner.GetComponent<ImpregnatorGallary>();
+            if (flytrapg != null)
+            {
+                Logger.LogInfo("flytrapgg");
+                return sexTime["flyTrap"];
+            }
+            /*******************************************************************************************/
+            LickerController licker = player.mySexPartner.GetComponent<LickerController>();
+            if (licker != null)
+            {
+                Logger.LogInfo("licker");
+                return sexTime["licker"];
+            }
+
+            LickerGallery lickerg = player.mySexPartner.GetComponent<LickerGallery>();
+            if (lickerg != null)
+            {
+                Logger.LogInfo("lickerg");
+                return sexTime["licker"];
+            }
+            /*******************************************************************************************/
+            LurkerGallery lurkerg = player.mySexPartner.GetComponent<LurkerGallery>();
+            if (lurkerg != null)
+            {
+                Logger.LogInfo("lurkerg");
+                return sexTime["snake"];
+            }
+            /*******************************************************************************************/
+            MantisAi mantis = player.mySexPartner.GetComponent<MantisAi>();
+            if (hugger != null)
+            {
+                Logger.LogInfo("mantis");
+                return sexTime["mantis"];
+            }
+
+            MantisGallery mantisg = player.mySexPartner.GetComponent<MantisGallery>();
+            if (mantisg != null)
+            {
+                Logger.LogInfo("mantisg");
+                return sexTime["mantis"];
+            }
+            /*******************************************************************************************/
+            WolfGallery wolfg = player.mySexPartner.GetComponent<WolfGallery>();
+            if (wolfg != null)
+            {
+                Logger.LogInfo("wolfT1g");
+                return sexTime["wolfT1"];
+            }
+
+            /*******************************************************************************************/
+            FutaMounter futa = player.mySexPartner.GetComponent<FutaMounter>();
+            if (futa != null)
+            {
+                Logger.LogInfo("futa");
+                return sexTime["futa"];
+            }
+
+            FutaGallery futag = player.mySexPartner.GetComponent<FutaGallery>();
+            if (futag != null)
+            {
+                Logger.LogInfo("futag");
+                return sexTime["futa"];
+            }
+            /*******************************************************************************************/
+            PlantWalkerControl plantWalker = player.mySexPartner.GetComponent<PlantWalkerControl>();
+            if (plantWalker != null)
+            {
+                Logger.LogInfo("plantwalker");
+                return sexTime["plantWalker"];
+            }
+
+            /*******************************************************************************************/
+            MindFleyerControl mindFleyer = player.mySexPartner.GetComponent<MindFleyerControl>();
+            if (mindFleyer != null)
+            {
+                Logger.LogInfo("mindfleyer");
+                return sexTime["mindFleyer"];
+            }
+
+            //Default if anything not found(for debug really)
+            Dictionary<int, int>  timestamp = new Dictionary<int, int>();
+
+            timestamp.Add(0, 1);
+            return timestamp;
+        }
+
+
+        public void GetSupportedCommand()
+        {
+            string supportText = @",symbol,type,showName,func
+0,1.5,version,,
+1,[  ""l""],Ambi,Ambi,""{ """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}
+            ""
+2,[  ""ca""],Mission2,Mission2,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+3,[  ""su""],c20,C20,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+4,[  ""t""],Calor,Calor,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+5,[  ""r""],Diamo,Diamo,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+6,[  ""j""],Dolce,Dolce,""{  """"p"""": false,  """"r"""": false,  """"v2"""": true,  """"v1"""": true,  """"v"""": true}""
+7,[  ""w""],Domi,Domi,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+8,[  ""p""],Edge,Edge,""{  """"p"""": false,  """"r"""": false,  """"v2"""": true,  """"v1"""": true,  """"v"""": true}""
+9,[  ""ef""],Exomoon,Exomoon,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+10,[  ""x""],Ferri,Ferri,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+11,[  ""ei""],Flexer,Flexer,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true,  """"f"""": true}""
+12,[  ""n""],Gemini,Gemini,""{  """"p"""": false,  """"r"""": false,  """"v2"""": true,  """"v1"""": true,  """"v"""": true}""
+13,[  ""ea""],Gravity,Gravity,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true,  """"t"""": true,  """"s"""": false}""
+14,[  ""ed""],Gush,Gush,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+15,[  ""ba""],SolacePro,SolacePro,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": false,  """"t"""": true,  """"pos"""": true}""
+16,[  ""z""],Hush,Hush,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+17,[  ""eb""],Hyphy,Hyphy,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+18,[  ""u""],Lapis,Lapis,""{  """"p"""": false,  """"r"""": false,  """"v2"""": true,  """"v1"""": true,  """"v3"""": true,  """"v"""": true}""
+19,[  ""s""],Lush,Lush,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+20,""[  """"toyb"""",  """"b""""]"",Max,Max,""{  """"p"""": true,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+21,[  ""fs""],MiniXMachine,MiniXMachine,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true,  """"t"""": true}""
+22,[  ""v""],Mission,Mission,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+23,""[  """"toyc"""",  """"toya"""",  """"c"""",  """"a""""]"",Nora,Nora,""{  """"p"""": false,  """"r"""": true,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+24,[  ""o""],Osci,Osci,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+25,[  ""qa""],QA01,QA01,""{  """"p"""": false,  """"r"""": false,  """"v2"""": true,  """"v1"""": true,  """"v"""": true}""
+26,[  ""el""],Ridge,Ridge,""{  """"p"""": false,  """"r"""": true,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+27,[  ""h""],Solace,Solace,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": false,  """"t"""": true,  """"d"""": true}""
+28,[  ""q""],Tenera,Tenera,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true,  """"s"""": true}""
+29,[  ""sd""],Vulse,Vulse,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true}""
+30,[  ""f""],XMachine,XMachine,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": true,  """"t"""": true}""
+31,[  ""ez""],Gush2,Gush2,""{  """"p"""": false,  """"r"""": false,  """"v2"""": false,  """"v1"""": false,  """"v"""": false, """"o"""":true}""";
+
+            //string url = "https://developer.lovense.com/LovenseToySupportConfig.csv";
+            //HttpClient client = new HttpClient();
+            //string supportText = await client.GetStringAsync(new Uri(url));
+
+            LovenseBLETools.GetInstance().InitSupport(supportText, (InitSupportCommandStatus status) =>
+           {
+                if (status == InitSupportCommandStatus.SUCCESS)
+                {
+
+                }
+            });
+        }
+    }
+}

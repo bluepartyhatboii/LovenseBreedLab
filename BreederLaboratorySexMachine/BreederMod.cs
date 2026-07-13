@@ -53,6 +53,7 @@ namespace BreederLaboratoryLovesense
         {
             sexTimers = new List<Timer>();
 
+
             PopulateSexTime();
 
             GetSupportedCommand();
@@ -196,7 +197,8 @@ namespace BreederLaboratoryLovesense
             if(!connected)
             {
                 _id = "";
-                Logger.LogInfo("BLE lost connection");
+                Logger.LogInfo("BLE lost connection, trying to reconnect...");
+                LovenseBLETools.GetInstance().StartBLEScan();
             }
             else
             {

@@ -18,7 +18,8 @@ namespace BreederLaboratoryLovesense
     {
 
         private string _id = "";
-        HeroineStats player;
+        HeroineStats playerStats;
+        PlayerController playerController;
         bool sexStarted;
 
         Dictionary<string, Dictionary<int, int>> sexTime;
@@ -79,17 +80,13 @@ namespace BreederLaboratoryLovesense
         {
             long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Logger.LogInfo("Thurst event at: " + ms);
-            if(player == null)
+            while(playerStats == null)
             {
-                try
-                {
-                    player = UnityEngine.Object.FindObjectOfType<HeroineStats>();
-                }
-                catch (Exception e)
-                {
-                    Logger.LogInfo(e.Message);
-                    Logger.LogInfo(e.StackTrace);
-                }
+                playerStats = UnityEngine.Object.FindObjectOfType<HeroineStats>();
+            }
+            while(playerController == null)
+            {
+                playerController = UnityEngine.Object.FindObjectOfType<PlayerController>();
             }
             if (!sexStarted)
             {
@@ -102,29 +99,43 @@ namespace BreederLaboratoryLovesense
         {
             long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Logger.LogInfo("Sex scene begin at: " + ms);
+            Logger.LogInfo("Found player");
 
-            if(player != null)
+            StartSexTimers();
+        }
+
+        private void StartSexTimers()
+        {
+            Logger.LogInfo("partner:" + playerStats.mySexPartner);
+            Logger.LogInfo("focus: " + playerController.focus);
+            if ((playerStats.mySexPartner != null) || (playerController.focus != null))
             {
-                if (player.mySexPartner != null)
+                try
                 {
+
                     Dictionary<int, int> timestamps = FindTimestamps();
                     Logger.LogInfo("Speed change timestamps: ");
 
-                    foreach(KeyValuePair<int, int> item in timestamps)
+                    foreach (KeyValuePair<int, int> item in timestamps)
                     {
                         int key = item.Key;
                         int value = item.Value;
 
                         Logger.LogInfo("+" + key + "ms -- speed " + value);
 
-                        Timer timer = new Timer(_ =>
+                        Timer sexTimer = new Timer(_2 =>
                         {
                             SendStartCommand(value);
                         }, null, key, Timeout.Infinite);
 
-                        sexTimers.Add(timer);
+                        sexTimers.Add(sexTimer);
                     }
                 }
+                catch(Exception e)
+                {
+                    Logger.LogInfo(e.Message);
+                }
+                
             }
         }
 
@@ -289,14 +300,14 @@ namespace BreederLaboratoryLovesense
 
         private Dictionary<int,int> FindTimestamps()
         {
-            OctoControl octo = player.mySexPartner.GetComponent<OctoControl>();
+            OctoControl octo = playerStats.mySexPartner?.GetComponent<OctoControl>();
             if (octo != null)
             {
                 Logger.LogInfo("Found partner t1hugger");
                 return sexTime["facehugger"];
             }
 
-            OctoGallery octog = player.mySexPartner.GetComponent<OctoGallery>();
+            OctoControl octog = playerController.focus?.GetComponent<OctoControl>();
             if (octog != null)
             {
                 Logger.LogInfo("Found partner t1hugger gallery");
@@ -304,98 +315,98 @@ namespace BreederLaboratoryLovesense
             }
 
             /*******************************************************************************************/
-            HuggerControl hugger = player.mySexPartner.GetComponent<HuggerControl>();
+            HuggerControl hugger = playerStats.mySexPartner?.GetComponent<HuggerControl>();
             if (hugger != null)
             {
                 Logger.LogInfo("Found partner facehugger");
                 return sexTime["hugger"];
             }
 
-            HuggerGallery huggerg = player.mySexPartner.GetComponent<HuggerGallery>();
+            HuggerControl huggerg = playerController.focus?.GetComponent<HuggerControl>();
             if (huggerg != null)
             {
                 Logger.LogInfo("Found partner facehugger gallery");
                 return sexTime["hugger"];
             }
             /*******************************************************************************************/
-            HoundControl hound = player.mySexPartner.GetComponent<HoundControl>();
+            HoundControl hound = playerStats.mySexPartner?.GetComponent<HoundControl>();
             if (hound != null)
             {
                 Logger.LogInfo("Found partner t4 wolf");
                 return sexTime["wolfFeral"];
             }
 
-            HoundGallery houndg = player.mySexPartner.GetComponent<HoundGallery>();
+            HoundGallery houndg = playerController.focus?.GetComponent<HoundGallery>();
             if (houndg != null)
             {
                 Logger.LogInfo("Found partner t4 wolf gallery");
                 return sexTime["wolfFeral"];
             }
             /*******************************************************************************************/
-            WaspControl wasp = player.mySexPartner.GetComponent<WaspControl>();
+            WaspControl wasp = playerStats.mySexPartner?.GetComponent<WaspControl>();
             if (wasp != null)
             {
                 Logger.LogInfo("Found partner wasp");
                 return sexTime["wasp"];
             }
 
-            WaspGallery waspg = player.mySexPartner.GetComponent<WaspGallery>();
+            WaspGallery waspg = playerController.focus?.GetComponent<WaspGallery>();
             if (waspg != null)
             {
                 Logger.LogInfo("Found partner wasp gallery");
                 return sexTime["wasp"];
             }
             /*******************************************************************************************/
-            ImpregInsectControl flytrap = player.mySexPartner.GetComponent<ImpregInsectControl>();
+            ImpregInsectControl flytrap = playerStats.mySexPartner?.GetComponent<ImpregInsectControl>();
             if (flytrap != null)
             {
                 Logger.LogInfo("Found partner t1 flying insect gallery");
                 return sexTime["flytrap"];
             }
 
-            ImpregnatorGallary flytrapg = player.mySexPartner.GetComponent<ImpregnatorGallary>();
+            ImpregnatorGallary flytrapg = playerController.focus?.GetComponent<ImpregnatorGallary>();
             if (flytrapg != null)
             {
                 Logger.LogInfo("Found partner t1 flying insect gallery");
                 return sexTime["flyTrap"];
             }
             /*******************************************************************************************/
-            LickerController licker = player.mySexPartner.GetComponent<LickerController>();
+            LickerController licker = playerStats.mySexPartner?.GetComponent<LickerController>();
             if (licker != null)
             {
                 Logger.LogInfo("Found partner licker");
                 return sexTime["licker"];
             }
 
-            LickerGallery lickerg = player.mySexPartner.GetComponent<LickerGallery>();
+            LickerGallery lickerg = playerController.focus?.GetComponent<LickerGallery>();
             if (lickerg != null)
             {
                 Logger.LogInfo("Found partner licker gallery");
                 return sexTime["licker"];
             }
             /*******************************************************************************************/
-            LurkerGallery lurkerg = player.mySexPartner.GetComponent<LurkerGallery>();
+            LurkerGallery lurkerg = playerController.focus?.GetComponent<LurkerGallery>();
             if (lurkerg != null)
             {
                 Logger.LogInfo("lurkerg");
                 return sexTime["snake"];
             }
             /*******************************************************************************************/
-            MantisAi mantis = player.mySexPartner.GetComponent<MantisAi>();
+            MantisAi mantis = playerStats.mySexPartner?.GetComponent<MantisAi>();
             if (hugger != null)
             {
                 Logger.LogInfo("Found partner mantis");
                 return sexTime["mantis"];
             }
 
-            MantisGallery mantisg = player.mySexPartner.GetComponent<MantisGallery>();
+            MantisGallery mantisg = playerController.focus?.GetComponent<MantisGallery>();
             if (mantisg != null)
             {
                 Logger.LogInfo("Found partner mantis gallery");
                 return sexTime["mantis"];
             }
             /*******************************************************************************************/
-            WolfGallery wolfg = player.mySexPartner.GetComponent<WolfGallery>();
+            WolfGallery wolfg = playerController.focus?.GetComponent<WolfGallery>();
             if (wolfg != null)
             {
                 Logger.LogInfo("Found partner T1 wolf gallery");
@@ -403,21 +414,21 @@ namespace BreederLaboratoryLovesense
             }
 
             /*******************************************************************************************/
-            FutaMounter futa = player.mySexPartner.GetComponent<FutaMounter>();
+            FutaMounter futa = playerStats.mySexPartner?.GetComponent<FutaMounter>();
             if (futa != null)
             {
                 Logger.LogInfo("Found partner futa");
                 return sexTime["futa"];
             }
 
-            FutaGallery futag = player.mySexPartner.GetComponent<FutaGallery>();
+            FutaGallery futag = playerController.focus?.GetComponent<FutaGallery>();
             if (futag != null)
             {
                 Logger.LogInfo("Found partner futa gallery");
                 return sexTime["futa"];
             }
             /*******************************************************************************************/
-            PlantWalkerControl plantWalker = player.mySexPartner.GetComponent<PlantWalkerControl>();
+            PlantWalkerControl plantWalker = playerStats.mySexPartner?.GetComponent<PlantWalkerControl>();
             if (plantWalker != null)
             {
                 Logger.LogInfo("Found partner plant walker");
@@ -425,7 +436,7 @@ namespace BreederLaboratoryLovesense
             }
 
             /*******************************************************************************************/
-            MindFleyerControl mindFleyer = player.mySexPartner.GetComponent<MindFleyerControl>();
+            MindFleyerControl mindFleyer = playerStats. mySexPartner?.GetComponent<MindFleyerControl>();
             if (mindFleyer != null)
             {
                 Logger.LogInfo("Found partner mind fleyer");

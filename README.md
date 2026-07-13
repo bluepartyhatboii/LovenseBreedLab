@@ -14,11 +14,11 @@
 
 ## Description
 
-Mod for the game Breed Laboratory by Moey Moey that connects Lovense toys with the game. It starts/stops toys with sex scenes and adjusts toy speed/intensity according to the rhythm of the sex scene. See [Supported Lovense Toys](#supported-lovense-toys) and
+Mod for the game Breed Laboratory by Moey Moey that connects Lovense toys with the game. It starts/stops toys with sex scenes and adjusts toy speed/intensity according to the rhythm of the sex scene. See [Supported Lovense Toys](#supported-lovense-toys) and [Supported Enemies](#supported-enemies)
 
 ## Contributing
 
-Testing requires having the hardware, sex toys, and I do not own more than 1 at the moment. If you want to test it for other Lovense toys contact me on Discord @redpartyhatboii or on the official game Discord.
+Testing requires having the hardware, sex toys, and I do not own more than 1 at the moment. If you want to test it for other Lovense toys contact me on Discord @redpartyhatboii or on the official game Discord. Lovense products not in the list below are not supported, but can be.
 
 ## Building
 
@@ -30,8 +30,9 @@ Testing requires having the hardware, sex toys, and I do not own more than 1 at 
 
 * Clone repo
 * Open project
-* Import references from your game installation: Assembly-CSharp.dll, UnityEngine.dll, UnityEngine.CoreModule.dll, 0Harmony.dll, Bepinex.dll
+* Import references from your game installation: Breed Laboratory\_Data/Managed/Assembly-CSharp.dll, Breed Laboratory\_Data/Managed/UnityEngine.dll, Breed Laboratory\_Data/Managed/UnityEngine.CoreModule.dll, BepInEx/core/0Harmony.dll, BepInEx/core/Bepinex.dll
 * Build
+* Note: Lovense Bluetooth lib not included in project, you need to download it from the manufacturer https://developer.lovense.com/LovenseBLE\_Lib.dll
 
 ## Installation
 
@@ -46,9 +47,13 @@ Testing requires having the hardware, sex toys, and I do not own more than 1 at 
 * Build from sources or download the latest version from the release page
 * Copy the mod dll and Lovense Bluetooth lib dll into game/bepinex/plugins
 
+
+
+* Tutorial installaion video comming soon
+
 ### Testing installation
 
-* When the game opens in the main menu screen, the toy will be indicating a remote connection
+* When the game opens in the main menu screen, the toy will be indicating a remote connection. For sex machine the led stops blinking for exemple.
 
 ## Usage
 
@@ -58,7 +63,7 @@ Testing requires having the hardware, sex toys, and I do not own more than 1 at 
 * Open the game
 * Toy should now stop blinking to indicate it is now connected
 * Toy will now start and stop on sex scenes with this list of enemies: [Supported Enemies](#supported-enemies)
-* Pausing the game will not stop the sex toy
+* Pausing the game will not stop the sex toy and will desynchronise speed of the toy according to the sex scene
 * Quitting to the main menu or closing the game will not stop the sex toy
 
 ## Supported Lovense Toys

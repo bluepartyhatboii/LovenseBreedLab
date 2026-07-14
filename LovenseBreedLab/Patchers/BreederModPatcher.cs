@@ -188,15 +188,6 @@ namespace BreederLaboratorySexMachine.Patchers
 
             /******************************************************************************************/
 
-            original = AccessTools.Method(typeof(HumanoidController), "ThrustEvent");
-            postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
-            harmony.Patch(original, postfix: new HarmonyMethod(postfix));
-
-            original = AccessTools.Method(typeof(HumanoidController), "ThrustEventHard");
-            postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
-            harmony.Patch(original, postfix: new HarmonyMethod(postfix));
-            /******************************************************************************************/
-
             original = AccessTools.Method(typeof(CurScGallery), "ThrustEvent");
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));

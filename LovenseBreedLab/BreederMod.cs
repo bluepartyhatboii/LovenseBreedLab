@@ -45,10 +45,11 @@ namespace BreederLaboratoryLovesense
         //licker: 542, 14 387, 19.6 271
         //snake: 1208, 20 863, 26 604, 31 200
         //mantis: 792, 10 560, 16.7 377, 19.6 250
-        //wolf t1: 584, 14.4 267 20.5 188
+        //wolf gallery: 584, 14.4 267 20.5 188 
         //futa: 583, 15 396
         //plantwalker: 584
         //mindfleyer: 792, 31.6 1625, 132 792
+        //wolft1 550, 10.8 266
 
         //formula ms to xmachine speed setting
         // duty cycle = (1160 / (speed^0.62)) + 80
@@ -319,7 +320,7 @@ namespace BreederLaboratoryLovesense
             sexTimestamp.Add(0, 3);
             sexTimestamp.Add(14400, 17);
             sexTimestamp.Add(20500, 40);
-            sexTime.Add("wolfT1", sexTimestamp);
+            sexTime.Add("wolfgallery", sexTimestamp);
 
             sexTimestamp = new Dictionary<int, int>();
             sexTimestamp.Add(0, 3);
@@ -343,10 +344,25 @@ namespace BreederLaboratoryLovesense
             sexTimestamp.Add(19600, 22);
             sexTime.Add("mantis", sexTimestamp);
 
+            sexTimestamp = new Dictionary<int, int>();
+            sexTimestamp.Add(0, 4);
+            sexTimestamp.Add(10800, 9);
+            sexTime.Add("t1wolf", sexTimestamp);
+
         }
 
         private Dictionary<int,int> FindTimestamps()
         {
+
+            HumanoidController humanoid = playerStats.mySexPartner?.GetComponent<HumanoidController>();
+            if (humanoid != null)
+            {
+                Logger.LogInfo("Found partner T1wolf");
+                return sexTime["t1wolf"];
+            }
+
+            /*******************************************************************************************/
+
             OctoControl octo = playerStats.mySexPartner?.GetComponent<OctoControl>();
             if (octo != null)
             {
@@ -456,8 +472,8 @@ namespace BreederLaboratoryLovesense
             WolfGallery wolfg = playerController.focus?.GetComponent<WolfGallery>();
             if (wolfg != null)
             {
-                Logger.LogInfo("Found partner T1 wolf gallery");
-                return sexTime["wolfT1"];
+                Logger.LogInfo("Found partner wolf gallery");
+                return sexTime["wolf gallery"];
             }
 
             /*******************************************************************************************/

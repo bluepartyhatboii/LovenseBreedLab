@@ -141,6 +141,12 @@ namespace BreederLaboratoryLovesense
 
         private void SendStartCommand(int speed)
         {
+#if SLOW
+            speed = speed >= 2 ? speed / 2 : speed;
+#elif SLOWER
+            speed = speed >= 4 ? speed / 4 : speed;
+#endif
+
             List<LovenseCommand> commands = new List<LovenseCommand>();
 
             Logger.LogInfo("BLE changing speed to: " + speed);

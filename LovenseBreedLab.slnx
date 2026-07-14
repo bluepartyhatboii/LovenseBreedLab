@@ -1,3 +1,20 @@
 <Solution>
-  <Project Path="BreederLaboratorySexMachine/LovenseBreedLab.csproj" Id="9a1b37a3-1649-4526-b452-d7571806424e" />
+  <Configurations>
+    <BuildType Name="BreedLaboratorySexMachineNormal" />
+    <BuildType Name="BreedLaboratorySexMachineSlow" />
+    <BuildType Name="BreedLaboratorySexMachineSlower" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="LovenseBreedLab/LovenseBreedLab.csproj" Id="9a1b37a3-1649-4526-b452-d7571806424e" />
+  <Project Path="LovenseBreedLabSlow/LovenseBreedLabSlow.csproj" Id="16f7a12c-8420-4b81-ba5c-6ecc595c8543">
+    <BuildType Solution="BreedLaboratorySexMachineNormal|*" Project="Debug" />
+    <BuildType Solution="BreedLaboratorySexMachineSlower|*" Project="Debug" />
+    <BuildType Solution="BreedLaboratorySexMachineSlow|*" Project="Debug" />
+  </Project>
+  <Project Path="LovenseBreedLabSlower/LovenseBreedLabSlower.csproj" Id="43647e19-9f09-4640-a0ef-cee950feedc3">
+    <BuildType Solution="BreedLaboratorySexMachineNormal|*" Project="Debug" />
+    <BuildType Solution="BreedLaboratorySexMachineSlower|*" Project="Debug" />
+    <BuildType Solution="BreedLaboratorySexMachineSlow|*" Project="Debug" />
+  </Project>
 </Solution>

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BreederLaboratoryLovesense.LovesenseSDK
 {
-    class LovenseBLETools
+    public class LovenseBLETools
     {
 
         #region  ########################################################## extern from C#############################

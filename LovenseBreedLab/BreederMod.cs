@@ -26,6 +26,7 @@ namespace BreederLaboratoryLovesense
         List<Timer> sexTimers;
         Timer sexEndTimer;
         int biggestTimestamp;
+        long sexSceneMsOffset;
 
         //xmachine duty cycle data:
         //1: 1165ms
@@ -77,8 +78,6 @@ namespace BreederLaboratoryLovesense
 
         private void OnThrustEvent()
         {
-            long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Logger.LogInfo("Thurst event at: " + ms);
             while(playerStats == null)
             {
                 playerStats = UnityEngine.Object.FindObjectOfType<HeroineStats>();
@@ -123,6 +122,9 @@ namespace BreederLaboratoryLovesense
                     }, null, biggestTimestamp + 200, Timeout.Infinite);
                 }
             }
+            long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            ms -= sexSceneMsOffset;
+            Logger.LogInfo("Thurst event at: " + ms);
         }
 
         private void StartSexTimers()
@@ -134,8 +136,9 @@ namespace BreederLaboratoryLovesense
                 try
                 {
                     sexStarted = true;
-                    long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    Logger.LogInfo("Sex scene begin at: " + ms);
+                    sexSceneMsOffset = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    Logger.LogInfo("Sex scene begin now");
+
                     Dictionary<int, int> timestamps = FindTimestamps();
                     Logger.LogInfo("Speed change timestamps: ");
 

@@ -24,6 +24,8 @@ namespace BreederLaboratoryLovesense
 
         Dictionary<string, Dictionary<int, int>> sexTime;
         List<Timer> sexTimers;
+        Timer sexEndTimer;
+        int biggestTimestamp;
 
         //xmachine duty cycle data:
         //1: 1165ms
@@ -54,14 +56,11 @@ namespace BreederLaboratoryLovesense
         {
             sexTimers = new List<Timer>();
 
-
             PopulateSexTime();
 
             GetSupportedCommand();
 
             ThrustPatcher.onThrustHandler += OnThrustEvent;
-            FuckPatcher.onFuckHandler += OnFuckStarted;
-            RestPatcher.onRestHandler += OnFuckEnd;
 
             new BreederModPatcher();
            
@@ -90,18 +89,40 @@ namespace BreederLaboratoryLovesense
             }
             if (!sexStarted)
             {
-                sexStarted = true;
-                OnFuckStarted();
+                StartSexTimers();
             }
-        }
-        
-        private void OnFuckStarted()
-        {
-            long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            Logger.LogInfo("Sex scene begin at: " + ms);
-            Logger.LogInfo("Found player");
-
-            StartSexTimers();
+            if(sexStarted)
+            {
+                if(sexEndTimer == null)
+                {
+                    sexEndTimer = new Timer(_ =>
+                    {
+                        try
+                        {
+                            OnFuckEnd();
+                        }
+                        finally
+                        {
+                            sexEndTimer.Dispose();
+                        }
+                    }, null, biggestTimestamp + 200, Timeout.Infinite);
+                }
+                else
+                {
+                    sexEndTimer.Dispose();
+                    sexEndTimer = new Timer(_ =>
+                    {
+                        try
+                        {
+                            OnFuckEnd();
+                        }
+                        finally
+                        {
+                            sexEndTimer.Dispose();
+                        }
+                    }, null, biggestTimestamp + 200, Timeout.Infinite);
+                }
+            }
         }
 
         private void StartSexTimers()
@@ -112,9 +133,13 @@ namespace BreederLaboratoryLovesense
             {
                 try
                 {
-
+                    sexStarted = true;
+                    long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    Logger.LogInfo("Sex scene begin at: " + ms);
                     Dictionary<int, int> timestamps = FindTimestamps();
                     Logger.LogInfo("Speed change timestamps: ");
+
+                    biggestTimestamp = timestamps[0];
 
                     foreach (KeyValuePair<int, int> item in timestamps)
                     {
@@ -142,9 +167,9 @@ namespace BreederLaboratoryLovesense
         private void SendStartCommand(int speed)
         {
 #if SLOW
-            speed = speed >= 2 ? speed / 2 : speed;
+            speed = speed >= 4 ? speed / 2 : speed;
 #elif SLOWER
-            speed = speed >= 4 ? speed / 4 : speed;
+            speed = speed >= 8 ? speed / 4 : speed;
 #endif
 
             List<LovenseCommand> commands = new List<LovenseCommand>();
@@ -374,7 +399,7 @@ namespace BreederLaboratoryLovesense
             if (flytrap != null)
             {
                 Logger.LogInfo("Found partner t1 flying insect gallery");
-                return sexTime["flytrap"];
+                return sexTime["flyTrap"];
             }
 
             ImpregnatorGallary flytrapg = playerController.focus?.GetComponent<ImpregnatorGallary>();

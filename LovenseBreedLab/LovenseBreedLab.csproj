@@ -84,12 +84,9 @@
   <ItemGroup>
     <Compile Include="BreederMod.cs" />
     <Compile Include="Patchers\BreederModPatcher.cs" />
-    <Compile Include="Patchers\UpdatePatcher.cs" />
-    <Compile Include="Patchers\FuckPatcher.cs" />
     <Compile Include="LovesenseSDK\LovenseBLEClasses.cs" />
     <Compile Include="LovesenseSDK\LovenseBLETools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Patchers\RestPatcher.cs" />
     <Compile Include="Patchers\TrustPatcher.cs" />
   </ItemGroup>
   <ItemGroup />

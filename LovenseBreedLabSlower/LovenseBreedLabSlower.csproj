@@ -64,14 +64,28 @@
     <Compile Include="..\LovenseBreedLab\BreederMod.cs">
       <Link>BreederMod.cs</Link>
     </Compile>
+    <Compile Include="..\LovenseBreedLab\LovesenseSDK\LovenseBLEClasses.cs">
+      <Link>LovenseSDK\LovenseBLEClasses.cs</Link>
+    </Compile>
+    <Compile Include="..\LovenseBreedLab\LovesenseSDK\LovenseBLETools.cs">
+      <Link>LovenseSDK\LovenseBLETools.cs</Link>
+    </Compile>
+    <Compile Include="..\LovenseBreedLab\Patchers\BreederModPatcher.cs">
+      <Link>Patchers\BreederModPatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\LovenseBreedLab\Patchers\FuckPatcher.cs">
+      <Link>Patchers\FuckPatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\LovenseBreedLab\Patchers\RestPatcher.cs">
+      <Link>Patchers\RestPatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\LovenseBreedLab\Patchers\TrustPatcher.cs">
+      <Link>Patchers\TrustPatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\LovenseBreedLab\Patchers\UpdatePatcher.cs">
+      <Link>Patchers\UpdatePatcher.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LovenseBreedLab\LovenseBreedLab.csproj">
-      <Project>{9a1b37a3-1649-4526-b452-d7571806424e}</Project>
-      <Name>LovenseBreedLab</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

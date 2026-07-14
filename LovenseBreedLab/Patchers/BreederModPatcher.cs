@@ -182,7 +182,7 @@ namespace BreederLaboratorySexMachine.Patchers
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 
-            original = AccessTools.Method(typeof(WolfTakeMe), "ThrustHardEvent");
+            original = AccessTools.Method(typeof(WolfTakeMe), "ThrustEventHard");
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 
@@ -192,7 +192,7 @@ namespace BreederLaboratorySexMachine.Patchers
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 
-            original = AccessTools.Method(typeof(HumanoidController), "ThrustHardEvent");
+            original = AccessTools.Method(typeof(HumanoidController), "ThrustEventHard");
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
             /******************************************************************************************/
@@ -201,7 +201,7 @@ namespace BreederLaboratorySexMachine.Patchers
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 
-            original = AccessTools.Method(typeof(CurScGallery), "ThrustHardEvent");
+            original = AccessTools.Method(typeof(CurScGallery), "ThrustEventHard");
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
             /******************************************************************************************/
@@ -210,7 +210,7 @@ namespace BreederLaboratorySexMachine.Patchers
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 
-            original = AccessTools.Method(typeof(HumJustFuck), "ThrustHardEvent");
+            original = AccessTools.Method(typeof(HumJustFuck), "ThrustEventHard");
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 

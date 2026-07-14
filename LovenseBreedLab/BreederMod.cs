@@ -127,6 +127,11 @@ namespace BreederLaboratoryLovesense
             Logger.LogInfo("Thurst event at: " + ms);
         }
 
+        private int SpeedToMs(int speed)
+        {
+            return (int)(1160 / (Math.Pow(speed, 0.62)) + 80);
+        }
+
         private void StartSexTimers()
         {
             Logger.LogInfo("partner:" + playerStats.mySexPartner);
@@ -142,7 +147,7 @@ namespace BreederLaboratoryLovesense
                     Dictionary<int, int> timestamps = FindTimestamps();
                     Logger.LogInfo("Speed change timestamps: ");
 
-                    biggestTimestamp = timestamps[0];
+                    biggestTimestamp = SpeedToMs(timestamps[0]);
 
                     foreach (KeyValuePair<int, int> item in timestamps)
                     {
@@ -195,6 +200,7 @@ namespace BreederLaboratoryLovesense
         private void OnFuckEnd()
         {
             long ms = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            ms -= sexSceneMsOffset;
             Logger.LogInfo("Sex scene end at: " + ms);
 
             sexStarted = false;

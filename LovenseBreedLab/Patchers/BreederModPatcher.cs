@@ -205,7 +205,6 @@ namespace BreederLaboratorySexMachine.Patchers
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
 
-
             /******************************************************************************************/
 
             original = AccessTools.Method(typeof(PhantomHugger), "ThrustEvent");
@@ -232,6 +231,7 @@ namespace BreederLaboratorySexMachine.Patchers
             postfix = AccessTools.Method(typeof(ThrustPatcher), nameof(ThrustPatcher.Postfix));
             harmony.Patch(original, postfix: new HarmonyMethod(postfix));
             /******************************************************************************************/
+
         }
     }
 }

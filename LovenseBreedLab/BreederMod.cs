@@ -306,7 +306,7 @@ namespace BreederLaboratoryLovesense
             sexTimestamp = new Dictionary<int, int>();
             sexTimestamp.Add(0, 4);
             sexTimestamp.Add(14000, 8);
-            sexTimestamp.Add(19600, 17);
+            sexTimestamp.Add(19600, 15);
             sexTime.Add("licker", sexTimestamp);
 
             sexTimestamp = new Dictionary<int, int>();
@@ -436,6 +436,12 @@ namespace BreederLaboratoryLovesense
             /*******************************************************************************************/
             LickerController licker = playerStats.mySexPartner?.GetComponent<LickerController>();
             if (licker != null)
+            {
+                Logger.LogInfo("Found partner licker");
+                return sexTime["licker"];
+            }
+            NewLickerControl licker2 = playerStats.mySexPartner?.GetComponent<NewLickerControl>();
+            if (licker2 != null)
             {
                 Logger.LogInfo("Found partner licker");
                 return sexTime["licker"];
